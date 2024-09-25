@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Tablero de Ajedrez Interactivo</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <div id="controls">
+        <button id="clear-button">Limpiar Tablero</button>
+        <button id="reset-button">Restablecer Tablero</button>
+    </div>
+
+    <div id="container">
+        <!-- Barra de Piezas -->
+        <div id="piece-bar">
+            <h3>Piezas Negras</h3>
+            <div class="pieces-section">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/Chess_qdt45.svg/48px-Chess_qdt45.svg.png" alt="Dama Negra" class="draggable-piece" data-piece="queen_black">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/Chess_kdt45.svg/48px-Chess_kdt45.svg.png" alt="Rey Negro" class="draggable-piece" data-piece="king_black">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/98/Chess_bdt45.svg/48px-Chess_bdt45.svg.png" alt="Alfil Negro" class="draggable-piece" data-piece="bishop_black">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/Chess_ndt45.svg/48px-Chess_ndt45.svg.png" alt="Caballo Negro" class="draggable-piece" data-piece="knight_black">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/ff/Chess_rdt45.svg/48px-Chess_rdt45.svg.png" alt="Torre Negra" class="draggable-piece" data-piece="rook_black">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Chess_pdt45.svg/48px-Chess_pdt45.svg.png" alt="Peón Negro" class="draggable-piece" data-piece="pawn_black">
+            </div>
+
+            <h3>Piezas Blancas</h3>
+            <div class="pieces-section">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/Chess_qlt45.svg/48px-Chess_qlt45.svg.png" alt="Dama Blanca" class="draggable-piece" data-piece="queen_white">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/Chess_klt45.svg/48px-Chess_klt45.svg.png" alt="Rey Blanco" class="draggable-piece" data-piece="king_white">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/Chess_blt45.svg/48px-Chess_blt45.svg.png" alt="Alfil Blanco" class="draggable-piece" data-piece="bishop_white">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/70/Chess_nlt45.svg/48px-Chess_nlt45.svg.png" alt="Caballo Blanco" class="draggable-piece" data-piece="knight_white">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Chess_rlt45.svg/48px-Chess_rlt45.svg.png" alt="Torre Blanca" class="draggable-piece" data-piece="rook_white">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/Chess_plt45.svg/48px-Chess_plt45.svg.png" alt="Peón Blanco" class="draggable-piece" data-piece="pawn_white">
+            </div>
+        </div>
+
+        <!-- Tablero de Ajedrez -->
+        <div id="chessboard"></div>
+    </div>
+
+    <div id="overlay"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>
