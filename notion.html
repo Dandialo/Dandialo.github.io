@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Tablero de Ajedrez Funcional con Barra de Herramientas</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 20px;
+            border: 2px solid #333;
+            padding: 10px;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+            width: 520px;
+        }
+        .toolbar-piece {
+            width: 60px;
+            height: 60px;
+            margin: 5px;
+            font-size: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: grab;
+            user-select: none;
+        }
+        #chessboard {
+            display: grid;
+            grid-template-columns: repeat(8, 60px);
+            grid-template-rows: repeat(8, 60px);
+            border: 2px solid #333;
+        }
+        .square {
+            width: 60px;
+            height: 60px;
+            position: relative;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 40px;
+            user-select: none;
+        }
+        .white {
+            background-color: #f0d9b5;
+        }
+        .black {
+            background-color: #b58863;
+        }
+        .piece {
+            cursor: grab;
+        }
+        .piece.dragging {
+            opacity: 0.5;
+            cursor: grabbing;
+            z-index: 1000;
+        }
+        /* Zona para eliminar piezas */
+        #trash {
+            margin-top: 20px;
+            width: 60px;
+            height: 60px;
+            border: 2px dashed #e74c3c;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #e74c3c;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        #trash.hover {
+            background-color: #ffe6e6;
+        }
+        /* Contenedor de botones */
+        .button-container {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        .action-btn {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            background-color: #3498db;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .action-btn:hover {
+            background-color: #2980b9;
+        }
+        /* Botón de limpiar */
+        #clear-btn {
+            background-color: #e74c3c;
+        }
+        #clear-btn:hover {
+            background-color: #c0392b;
+        }
+    </style>
+</head>
+<body>
+    <!-- Barra de Herramientas -->
+    <div id="toolbar">
+        <!-- Piezas Blancas -->
+        <div class="toolbar-piece" draggable="true" data-type="wP">♙</div>
+        <div class="toolbar-piece" draggable="true" data-type="wR">♖</div>
+        <div class="toolbar-piece" draggable="true" data-type="wN">♘</div>
+        <div class="toolbar-piece" draggable="true" data-type="wB">♗</div>
+        <div class="toolbar-piece" draggable="true" data-type="wQ">♕</div>
+        <div class="toolbar-piece" draggable="true" data-type="wK">♔</div>
+        <!-- Piezas Negras -->
+        <div class="toolbar-piece" draggable="true" data-type="bP">♟</div>
+        <div class="toolbar-piece" draggable="true" data-type="bR">♜</div>
+        <div class="toolbar-piece" draggable="true" data-type="bN">♞</div>
+        <div class="toolbar-piece" draggable="true" data-type="bB">♝</div>
+        <div class="toolbar-piece" draggable="true" data-type="bQ">♛</div>
+        <div class="toolbar-piece" draggable="true" data-type="bK">♚</div>
+    </div>
+    
+    <!-- Tablero de Ajedrez -->
+    <div id="chessboard"></div>
+    
+    <!-- Zona para eliminar piezas -->
+    <div id="trash">🗑️</div>
+    
+    <!-- Contenedor de botones -->
+    <div class="button-container">
+        <!-- Botón de reinicio -->
+        <button id="reset-btn" class="action-btn">Reiniciar Tablero</button>
+        <!-- Botón de limpiar -->
+        <button id="clear-btn" class="action-btn">Limpiar Tablero</button>
+    </div>
+    
+    <script>
+        // Definir los símbolos de las piezas
+        const PIECES = {
+            'wP': '♙',
+            'wR': '♖',
+            'wN': '♘',
+            'wB': '♗',
+            'wQ': '♕',
+            'wK': '♔',
+            'bP': '♟',
+            'bR': '♜',
+            'bN': '♞',
+            'bB': '♝',
+            'bQ': '♛',
+            'bK': '♚'
+        };
+
+        // Crear el tablero de ajedrez
+        const chessboard = document.getElementById('chessboard');
+        const squares = {}; // Para acceder fácilmente a las casillas por coordenada
+        let uniqueIdCounter = 0; // Contador para IDs únicos
+
+        function crearTablero() {
+            chessboard.innerHTML = ''; // Limpiar el tablero
+            // Reiniciar el objeto squares
+            for (const key in squares) {
+                delete squares[key];
+            }
+
+            for (let fila = 8; fila >= 1; fila--) {
+                for (let col = 0; col < 8; col++) {
+                    const square = document.createElement('div');
+                    square.classList.add('square');
+                    // Alternar colores
+                    if ((fila + col) % 2 === 0) {
+                        square.classList.add('white');
+                    } else {
+                        square.classList.add('black');
+                    }
+                    // Asignar coordenadas
+                    const letra = String.fromCharCode(97 + col); // 'a' a 'h'
+                    const coord = letra + fila;
+                    square.setAttribute('data-coord', coord);
+                    squares[coord] = square;
+
+                    // Eventos para drag-and-drop
+                    square.addEventListener('dragover', (e) => {
+                        e.preventDefault();
+                    });
+                    // Cambio de función para que 'this' se refiera al square
+                    square.addEventListener('drop', function(e) {
+                        e.preventDefault();
+                        const pieceData = e.dataTransfer.getData('text/plain');
+                        const source = e.dataTransfer.getData('source');
+
+                        if (pieceData) {
+                            if (source === 'toolbar') {
+                                // Crear una nueva pieza
+                                const pieceDiv = document.createElement('div');
+                                pieceDiv.textContent = PIECES[pieceData];
+                                pieceDiv.classList.add('piece');
+                                pieceDiv.setAttribute('draggable', 'true');
+                                pieceDiv.setAttribute('data-type', pieceData);
+                                // Asignar un ID único
+                                uniqueIdCounter++;
+                                const uniqueId = 'piece-' + uniqueIdCounter;
+                                pieceDiv.setAttribute('id', uniqueId);
+                                e.dataTransfer.setData('draggedId', uniqueId);
+                                // Añadir eventos de drag-and-drop a la pieza
+                                pieceDiv.addEventListener('dragstart', handleDragStart);
+                                pieceDiv.addEventListener('dragend', handleDragEnd);
+                                // Añadir la pieza a la casilla
+                                if (this.querySelector('.piece')) {
+                                    const confirmar = confirm(`Ya hay una pieza en ${coord}. ¿Deseas reemplazarla?`);
+                                    if (!confirmar) return;
+                                    this.removeChild(this.querySelector('.piece'));
+                                }
+                                this.appendChild(pieceDiv);
+                            }
+                            else if (source === 'board') {
+                                const draggedId = e.dataTransfer.getData('draggedId');
+                                const draggedElement = document.getElementById(draggedId);
+                                if (draggedElement && draggedElement.parentElement !== this) {
+                                    if (this.querySelector('.piece')) {
+                                        const confirmar = confirm(`Ya hay una pieza en ${coord}. ¿Deseas reemplazarla?`);
+                                        if (!confirmar) return;
+                                        this.removeChild(this.querySelector('.piece'));
+                                    }
+                                    this.appendChild(draggedElement);
+                                }
+                            }
+                        }
+                    });
+                    chessboard.appendChild(square);
+                }
+            }
+        }
+
+        // Inicializar el tablero
+        crearTablero();
+
+        // Variables para drag-and-drop
+        let draggedPiece = null;
+
+        // Manejar el inicio del arrastre
+        function handleDragStart(e) {
+            draggedPiece = this;
+            e.dataTransfer.setData('draggedId', this.id);
+            e.dataTransfer.setData('source', 'board');
+            // Cambiar opacidad mientras se arrastra
+            setTimeout(() => {
+                this.classList.add('dragging');
+            }, 0);
+        }
+
+        // Manejar el fin del arrastre
+        function handleDragEnd(e) {
+            this.classList.remove('dragging');
+            draggedPiece = null;
+        }
+
+        // Manejar el inicio del arrastre desde la barra de herramientas
+        const toolbarPieces = document.querySelectorAll('.toolbar-piece');
+        toolbarPieces.forEach(piece => {
+            piece.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', e.target.getAttribute('data-type'));
+                e.dataTransfer.setData('source', 'toolbar');
+                // Cambiar opacidad mientras se arrastra
+                setTimeout(() => {
+                    e.target.classList.add('dragging');
+                }, 0);
+            });
+            piece.addEventListener('dragend', (e) => {
+                e.target.classList.remove('dragging');
+            });
+        });
+
+        // Zona de eliminación de piezas
+        const trash = document.getElementById('trash');
+        trash.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            trash.classList.add('hover');
+        });
+        trash.addEventListener('dragleave', () => {
+            trash.classList.remove('hover');
+        });
+        trash.addEventListener('drop', (e) => {
+            e.preventDefault();
+            trash.classList.remove('hover');
+            const source = e.dataTransfer.getData('source');
+            if (source === 'board') {
+                const draggedId = e.dataTransfer.getData('draggedId');
+                const draggedElement = document.getElementById(draggedId);
+                if (draggedElement) {
+                    draggedElement.parentElement.removeChild(draggedElement);
+                }
+            }
+        });
+
+        // Función para reiniciar el tablero a la posición inicial
+        function resetBoard() {
+            crearTablero();
+            // Colocar las piezas en la posición inicial
+            const inicial = {
+                // Blancas
+                'a1': 'wR', 'b1': 'wN', 'c1': 'wB', 'd1': 'wQ', 'e1': 'wK', 'f1': 'wB', 'g1': 'wN', 'h1': 'wR',
+                'a2': 'wP', 'b2': 'wP', 'c2': 'wP', 'd2': 'wP', 'e2': 'wP', 'f2': 'wP', 'g2': 'wP', 'h2': 'wP',
+                // Negras
+                'a8': 'bR', 'b8': 'bN', 'c8': 'bB', 'd8': 'bQ', 'e8': 'bK', 'f8': 'bB', 'g8': 'bN', 'h8': 'bR',
+                'a7': 'bP', 'b7': 'bP', 'c7': 'bP', 'd7': 'bP', 'e7': 'bP', 'f7': 'bP', 'g7': 'bP', 'h7': 'bP'
+            };
+
+            for (const coord in inicial) {
+                const tipo = inicial[coord];
+                const square = squares[coord];
+                if (square) {
+                    // Crear y añadir la pieza
+                    const pieceDiv = document.createElement('div');
+                    pieceDiv.textContent = PIECES[tipo];
+                    pieceDiv.classList.add('piece');
+                    pieceDiv.setAttribute('draggable', 'true');
+                    pieceDiv.setAttribute('data-type', tipo);
+                    // Añadir eventos de drag-and-drop
+                    pieceDiv.addEventListener('dragstart', handleDragStart);
+                    pieceDiv.addEventListener('dragend', handleDragEnd);
+                    square.appendChild(pieceDiv);
+                }
+            }
+        }
+
+        // Función para limpiar el tablero eliminando todas las piezas
+        function clearBoard() {
+            for (const coord in squares) {
+                const square = squares[coord];
+                const piece = square.querySelector('.piece');
+                if (piece) {
+                    square.removeChild(piece);
+                }
+            }
+        }
+
+        // Asignar evento al botón de reinicio
+        const resetBtn = document.getElementById('reset-btn');
+        resetBtn.addEventListener('click', () => {
+            const confirmar = confirm('¿Estás seguro de que deseas reiniciar el tablero a la posición inicial?');
+            if (confirmar) {
+                resetBoard();
+            }
+        });
+
+        // Asignar evento al botón de limpiar
+        const clearBtn = document.getElementById('clear-btn');
+        clearBtn.addEventListener('click', () => {
+            const confirmar = confirm('¿Estás seguro de que deseas limpiar todo el tablero? Esta acción eliminará todas las piezas.');
+            if (confirmar) {
+                clearBoard();
+            }
+        });
+
+        // Inicializar el tablero con la posición inicial
+        resetBoard();
+    </script>
+</body>
+</html>
