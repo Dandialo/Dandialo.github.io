@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Reloj Digital Retro - Flip Clock Modo Oscuro</title>
+  <!-- Fuente Retro -->
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <style>
+    /* Variables para el modo oscuro */
+    :root {
+      --border-color: #448361;
+      --separator-color: #448361;
+      --digit-color: #FFFFFF;
+      --separator-shadow: 0 0 5px rgba(68, 131, 97, 0.8);
+      --digit-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
+      --clock-shadow: 0 0 15px rgba(68, 131, 97, 0.6);
+      --card-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+      --updating-background: rgba(68, 131, 97, 0.2);
+    }
+
+    /* Estilos generales del cuerpo */
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: transparent; /* Fondo transparente */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      font-family: 'Press Start 2P', cursive; /* Fuente retro pixelada */
+      color: var(--digit-color);
+      transition: background-color 0.5s ease, color 0.5s ease;
+    }
+
+    /* Contenedor del reloj */
+    .clock {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.5em; /* Espacio entre los dígitos y separadores */
+      padding: 1em 2em;
+      border: 4px solid var(--border-color); /* Borde verde */
+      border-radius: 10px;
+      box-shadow: var(--clock-shadow); /* Sombra verde suave */
+      background-color: transparent; /* Fondo transparente */
+      transition: border-color 0.5s ease, box-shadow 0.5s ease;
+    }
+
+    /* Estilos de los separadores (dos puntos) */
+    .separator {
+      color: var(--separator-color); /* Color verde para los separadores */
+      font-size: 2rem;
+      font-weight: bold;
+      animation: blink 1s infinite;
+      text-shadow: var(--separator-shadow); /* Sombra para resaltar */
+    }
+
+    /* Contenedor de cada tarjeta de flip */
+    .flip-card {
+      perspective: 1000px;
+    }
+
+    /* Parte interna de la tarjeta de flip */
+    .flip-card-inner {
+      position: relative;
+      width: 2.5em;
+      height: 3em;
+      text-align: center;
+      color: var(--digit-color); /* Color de los números */
+      border-radius: 5px;
+      overflow: hidden;
+      background-color: transparent; /* Fondo transparente */
+      box-shadow: var(--card-shadow); /* Sombra sutil para destacar */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 1.5em;
+      font-weight: bold;
+      transition: background-color 0.3s ease, color 0.5s ease;
+    }
+
+    /* Alternativa para cambiar el color al actualizar */
+    .flip-card.updating .flip-card-inner {
+      background-color: var(--updating-background); /* Verde más claro al actualizar */
+      transition: background-color 0.3s ease;
+    }
+
+    /* Estilo de los números */
+    .digit {
+      position: relative;
+      z-index: 1;
+      text-shadow: var(--digit-shadow); /* Sombra para resaltar */
+      transition: color 0.5s ease;
+    }
+
+    /* Animación de parpadeo para los separadores */
+    @keyframes blink {
+      0%, 50% {
+        opacity: 1;
+      }
+      50.01%, 100% {
+        opacity: 0;
+      }
+    }
+
+    /* Responsividad para pantallas pequeñas */
+    @media (max-width: 600px) {
+      .flip-card-inner {
+        width: 2em;
+        height: 2.5em;
+        font-size: 1.2em;
+      }
+
+      .separator {
+        font-size: 1.5rem;
+      }
+
+      .clock {
+        padding: 0.5em 1em;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="clock">
+    <div class="flip-card" id="hour-tens">
+      <div class="flip-card-inner">
+        <div class="digit">0</div>
+      </div>
+    </div>
+    <div class="flip-card" id="hour-units">
+      <div class="flip-card-inner">
+        <div class="digit">0</div>
+      </div>
+    </div>
+    <div class="separator">:</div>
+    <div class="flip-card" id="minute-tens">
+      <div class="flip-card-inner">
+        <div class="digit">0</div>
+      </div>
+    </div>
+    <div class="flip-card" id="minute-units">
+      <div class="flip-card-inner">
+        <div class="digit">0</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Función para actualizar cada dígito sin animación de flip
+    function updateDigit(id, newValue) {
+      const card = document.getElementById(id);
+      const inner = card.querySelector('.flip-card-inner');
+      const digit = inner.querySelector('.digit');
+
+      if (digit.textContent !== newValue) {
+        // Añadir clase para efecto de actualización
+        card.classList.add('updating');
+
+        // Actualizar el dígito
+        digit.textContent = newValue;
+
+        // Remover clase después de la transición
+        setTimeout(() => {
+          card.classList.remove('updating');
+        }, 300); // Duración de la transición
+      }
+    }
+
+    // Función para actualizar el reloj
+    function updateClock() {
+      const now = new Date();
+      let hours = now.getHours();
+      let minutes = now.getMinutes();
+
+      // Formatear horas y minutos a dos dígitos
+      hours = hours.toString().padStart(2, '0');
+      minutes = minutes.toString().padStart(2, '0');
+
+      // Dividir los dígitos
+      const hourTens = hours.charAt(0);
+      const hourUnits = hours.charAt(1);
+      const minuteTens = minutes.charAt(0);
+      const minuteUnits = minutes.charAt(1);
+
+      // Actualizar los dígitos
+      updateDigit('hour-tens', hourTens);
+      updateDigit('hour-units', hourUnits);
+      updateDigit('minute-tens', minuteTens);
+      updateDigit('minute-units', minuteUnits);
+
+      // Calcular milisegundos hasta el próximo minuto
+      const msToNextMinute = (60 - now.getSeconds()) * 1000 - now.getMilliseconds();
+      setTimeout(updateClock, msToNextMinute);
+    }
+
+    // Llamada inicial para actualizar el reloj
+    updateClock();
+  </script>
+
+</body>
+</html>
